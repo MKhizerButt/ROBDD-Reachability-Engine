@@ -1,6 +1,11 @@
 #include "Manager.h"
 #include <algorithm>
 
+// for visualisation:
+#include <fstream>
+#include <iostream>
+#include <set>
+
 namespace ClassProject {
 
     Manager::Manager() {
@@ -87,7 +92,7 @@ namespace ClassProject {
     }
 
     BDD_ID Manager::coFactorTrue(BDD_ID f, BDD_ID x) {
-        // Return constant if f == constant
+        // Return Constant if f == constant
         if (isConstant(f)) {
             return f;
         }
@@ -165,5 +170,65 @@ namespace ClassProject {
         }
     }
 
-    void Manager::visualizeBDD(std::string filepath, BDD_ID &root) {}
+
+
+
+    void Manager::visualizeBDD(std::string filepath, BDD_ID &root) {
+
+        std::ofstream outputFile(filepath);
+        if (!outputFile.is_open()) {
+            std::cerr << "Error: Unable to open file " << filepath << std::endl;
+            return;
+        }
+
+
+        outputFile << "digraph BDD {" << std::endl;
+        outputFile << "    rankdir=TB;" << std::endl;
+        outputFile << "    node [shape=circle];" << std::endl;
+
+        // To keep track of nodes we have already processed
+        std::set<BDD_ID> visitedNodes;
+
+        // We should have the track of nodes we have processed before! So we call a recursive visualization feom the root.
+        visualizeNode(root, outputFile, visitedNodes);
+
+        outputFile << "}" << std::endl;
+        outputFile.close();
+    }
+
+    void Manager::visualizeNode(BDD_ID id, std::ostream &outputFile, std::set<BDD_ID> &visitedNodes) {
+
+        //          First, we need to check whether the node is already visited; if not, do not process again
+        if (visitedNodes.find(id) != visitedNodes.end()) {
+            return;
+        }
+
+        //          We visited
+        visitedNodes.insert(id);
+
+        const auto &node = nodes[id];
+
+        if (isConstant(id)) {
+            // Terminal nodes (True/False) are usually drawn as boxes
+            outputFile << "    " << id << " [label=\"" << node.label << "\", shape=box];" << std::endl;
+            return;
+        } else {
+            //showing their label (a, b ,... )
+            std::string topVarName = nodes[node.topVar].label;
+            // outputFile << "    " << id << " [label=\"" << node.label << "\"];" << std::endl;
+            outputFile << "    " << id << " [label=\"" << topVarName << "\"];" << std::endl;
+        }
+
+        // For edges:
+        // Low child (False) -> Dotted Line
+        outputFile << "    " << id << " -> " << node.low << " [style=dotted, label=\"0\"];" << std::endl;
+
+        // High child (True) -> Solid Line
+        outputFile << "    " << id << " -> " << node.high << " [style=solid, label=\"1\"];" << std::endl;
+
+        // Recursively visualising children
+        visualizeNode(node.low, outputFile, visitedNodes);
+        visualizeNode(node.high, outputFile, visitedNodes);
+    }
 }
+#include "Manager.h"

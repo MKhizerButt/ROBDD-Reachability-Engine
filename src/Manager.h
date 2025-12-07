@@ -121,6 +121,7 @@ namespace ClassProject {
         std::vector<BDDNode> nodes;
         const BDD_ID FALSE_ID = 0;
         const BDD_ID TRUE_ID = 1;
+        void visualizeNode(BDD_ID id, std::ostream &outputFile, std::set<BDD_ID> &visitedNodes);
 
     public:
         Manager();

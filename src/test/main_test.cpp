@@ -522,6 +522,38 @@ TEST_F(ManagerTest, FindVars_ReturnsAllVariables) {
     EXPECT_FALSE(vars.count(and_ab_id)) << "Complex nodes must not be included.";
 }
 
+
+
+
+//Simple test to see the graphics, not for the systems' functionality.
+#include <fstream>
+
+TEST_F(ManagerTest, Visualization_GeneratesDotFile) {
+    // We create a few variables to make the graph interesting
+    BDD_ID a = manager.createVar("a");
+    BDD_ID b = manager.createVar("b");
+
+
+    // WE tried with: BDD_ID f = manager.xor2(a, b);
+    BDD_ID root_node = manager.xor2(a, b);;
+
+    std::string filepath = "graph_test.dot";
+
+    // then by call the visualize function, we test the visualizeBDD function
+    manager.visualizeBDD(filepath, root_node);
+
+    // It checks if the file exists and opens
+    std::ifstream file(filepath);
+    ASSERT_TRUE(file.is_open()) << "Error: The .dot file was not created.";
+
+    // to make sure that it looks like a DOT file
+    std::string first_line;
+    std::getline(file, first_line);
+    EXPECT_EQ(first_line, "digraph BDD {") << "Error: File content does not start with standard DOT header.";
+
+    file.close();
+}
+
 // main function for tests (typically handled by main_test.cpp or gtest setup)
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
