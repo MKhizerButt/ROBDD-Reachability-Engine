@@ -554,6 +554,54 @@ TEST_F(ManagerTest, Visualization_GeneratesDotFile) {
     file.close();
 }
 
+
+// --- Phase 5: Test Case 4 (Ultimate Integration Test) ---
+TEST_F(ManagerTest, IntegrationTest_ComplexExpressionMatchesSpecification) {
+    // 1. SETUP: Create variables in the required order
+    // Order: a (ID 2) > b (ID 3) > c (ID 4) > d (ID 5)
+    BDD_ID a_id = manager.createVar("a");
+    BDD_ID b_id = manager.createVar("b");
+    BDD_ID c_id = manager.createVar("c");
+    BDD_ID d_id = manager.createVar("d");
+
+    EXPECT_EQ(a_id, 2) ;
+    EXPECT_EQ(d_id, 5) ;
+    // 2. Compute the sub-functions, verifying intermediate results against Tab. 2
+
+    // F1 = a + b (ID 6 in the spec)
+    BDD_ID F1_or_id = manager.or2(a_id, b_id);
+    EXPECT_EQ(F1_or_id, 6) ;
+
+    // F2 = c * d (ID 7 in the spec)
+    BDD_ID F2_and_id = manager.and2(c_id, d_id);
+    EXPECT_EQ(F2_and_id, 7) ;
+
+    // 3. Compute the final function: F = F1 * F2 = (a+b) * (c*d)
+    BDD_ID final_f_id = manager.and2(F1_or_id, F2_and_id);
+
+
+    // 4. CRITICAL CHECKS (Comparing final result against the specification)
+
+    // A. Check the FINAL BDD ID (Final function F is ID 9 in the spec)
+    // You will need to check your unique table size count. Based on the spec (Tab. 2),
+    // the final node ID should be the 10th entry, meaning ID 9.
+    // NOTE: This check depends on your exact implementation matching the spec's order.
+    EXPECT_EQ(final_f_id, 9) << "The final complex function ID must match the spec's final node ID (9).";
+
+    // B. Check the FINAL UNIQUE TABLE SIZE
+    // Tab. 2 shows the final unique table has 10 entries (ID 0 to ID 9).
+    EXPECT_EQ(manager.uniqueTableSize(), 10) << "The total unique table size must match the spec (10 nodes).";
+
+    // C. Optional: Check the topVar of the final node (should be 'a', ID 2)
+    EXPECT_EQ(manager.topVar(final_f_id), a_id) << "The final top variable must be 'a'.";
+
+
+    std::string filepath = "complex_integration.dot";
+
+    manager.visualizeBDD(filepath, final_f_id);
+
+}
+
 // main function for tests (typically handled by main_test.cpp or gtest setup)
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
