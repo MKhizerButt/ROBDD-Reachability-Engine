@@ -602,6 +602,40 @@ TEST_F(ManagerTest, IntegrationTest_ComplexExpressionMatchesSpecification) {
 
 }
 
+TEST_F(ManagerTest, CoFactorTrueTest) /* NOLINT */
+{
+    // Create variables a, b, c, d
+    BDD_ID a_id = manager.createVar("a");
+    BDD_ID b_id = manager.createVar("b");
+    BDD_ID c_id = manager.createVar("c");
+    BDD_ID d_id = manager.createVar("d");
+
+    // Compute intermediate BDDs
+    BDD_ID a_or_b_id = manager.or2(a_id, b_id);        // a + b
+    BDD_ID c_and_d_id = manager.and2(c_id, d_id);      // c * d
+
+    // f1 = (a + b) * (c * d)
+    BDD_ID f1_id = manager.and2(a_or_b_id, c_and_d_id);
+
+    // Test coFactorTrue for each variable:
+
+    EXPECT_EQ(manager.coFactorTrue(f1_id, a_id), c_and_d_id)
+        << "Co-factor of f1 with a=true should be c*d";
+
+    EXPECT_EQ(manager.coFactorTrue(f1_id, a_id), manager.coFactorTrue(f1_id))
+        << "Calling coFactorTrue without a variable should default to a";
+
+    EXPECT_EQ(manager.coFactorTrue(f1_id, b_id), c_and_d_id)
+        << "Co-factor of f1 with b=true should also be c*d";
+
+    EXPECT_EQ(manager.coFactorTrue(f1_id, c_id), manager.and2(d_id, a_or_b_id))
+        << "Co-factor of f1 with c=true should be (a+b)*d";
+
+    EXPECT_EQ(manager.coFactorTrue(f1_id, d_id), manager.and2(c_id, a_or_b_id))
+        << "Co-factor of f1 with d=true should be (a+b)*c";
+}
+
+
 // main function for tests (typically handled by main_test.cpp or gtest setup)
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
