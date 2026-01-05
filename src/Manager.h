@@ -109,7 +109,7 @@
 namespace ClassProject {
 
     struct BDDNode {
-        BDD_ID id;
+        //BDD_ID id;
         BDD_ID high;
         BDD_ID low;
         BDD_ID topVar;

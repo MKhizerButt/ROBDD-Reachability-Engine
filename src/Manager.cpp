@@ -8,8 +8,12 @@
 
 namespace ClassProject {
     Manager::Manager() {
-        nodes.push_back({FALSE_ID, FALSE_ID, FALSE_ID, FALSE_ID, "False"});
-        nodes.push_back({TRUE_ID, TRUE_ID, TRUE_ID, TRUE_ID, "True"});
+        //nodes.push_back({FALSE_ID, FALSE_ID, FALSE_ID, FALSE_ID, "False"});
+        //nodes.push_back({TRUE_ID, TRUE_ID, TRUE_ID, TRUE_ID, "True"});
+        nodes.push_back({FALSE_ID, FALSE_ID, FALSE_ID, "False"});
+        nodes.push_back({TRUE_ID, TRUE_ID, TRUE_ID,  "True"});
+
+
     }
 
     const BDD_ID &Manager::True() { return TRUE_ID; }
@@ -21,15 +25,15 @@ namespace ClassProject {
 
     BDD_ID Manager::createVar(const std::string &label) {
         // We iterate through every node currently in the manager.
-        for (const auto &node: nodes) {
-            if (node.label == label) {
-                // If we find a match in labels, the result will be the currently existing ID:
-                return node.id;
+        for (BDD_ID id = 0; id < nodes.size(); ++id) {
+            if (isVariable(id) && nodes[id].label == label) {
+                return id; // BDD_ID == vector index
             }
         }
         // Below happens whenever we didn't find a match in the currently existing nodes' labels.
         BDD_ID new_id = nodes.size();
-        nodes.push_back({new_id, TRUE_ID, FALSE_ID, new_id, label});
+        //nodes.push_back({new_id, TRUE_ID, FALSE_ID, new_id, label});
+        nodes.push_back({TRUE_ID, FALSE_ID, new_id, label});
         return new_id;
     }
 
@@ -94,7 +98,8 @@ namespace ClassProject {
 
         // Create new node if not found
         BDD_ID new_id = nodes.size();
-        nodes.push_back({new_id, r_high, r_low, top, ""});
+        //nodes.push_back({new_id, r_high, r_low, top, ""});
+        nodes.push_back({r_high, r_low, top, ""});
         return new_id;
     }
 
