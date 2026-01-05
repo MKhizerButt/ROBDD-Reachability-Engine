@@ -7,7 +7,6 @@
 #include <set>
 
 namespace ClassProject {
-
     Manager::Manager() {
         nodes.push_back({FALSE_ID, FALSE_ID, FALSE_ID, FALSE_ID, "False"});
         nodes.push_back({TRUE_ID, TRUE_ID, TRUE_ID, TRUE_ID, "True"});
@@ -21,9 +20,8 @@ namespace ClassProject {
     size_t Manager::uniqueTableSize() { return nodes.size(); }
 
     BDD_ID Manager::createVar(const std::string &label) {
-
         // We iterate through every node currently in the manager.
-        for (const auto &node : nodes) {
+        for (const auto &node: nodes) {
             if (node.label == label) {
                 // If we find a match in labels, the result will be the currently existing ID:
                 return node.id;
@@ -42,19 +40,28 @@ namespace ClassProject {
     }
 
     BDD_ID Manager::ite(BDD_ID i, BDD_ID t, BDD_ID e) {
-
         // For Terminal Cases
-        if (i == TRUE_ID)   return t;
-        if (i == FALSE_ID)  return e;
-        if (t == TRUE_ID && e == FALSE_ID)  return i;
+        if (i == TRUE_ID) return t;
+        if (i == FALSE_ID) return e;
+        if (t == TRUE_ID && e == FALSE_ID) return i;
         if (t == e) return t;
 
         // For Recursive Cases
-        BDD_ID topI = isConstant(i) ? 99 : topVar(i);
-        BDD_ID topT = isConstant(t) ? 99 : topVar(t);
-        BDD_ID topE = isConstant(e) ? 99 : topVar(e);
+        BDD_ID top = topVar(i);
 
-        BDD_ID top = std::min({topI, topT, topE});
+        if (!isConstant(t) && topVar(t) < top) {
+            top = topVar(t);
+        }
+
+        if (!isConstant(e)  && topVar(e) < top) {
+            top = topVar(e);
+        }
+
+        // BDD_ID topI = isConstant(i) ? 99 : topVar(i);
+        // BDD_ID topT = isConstant(t) ? 99 : topVar(t);
+        // BDD_ID topE = isConstant(e) ? 99 : topVar(e);
+
+        //BDD_ID top = std::min({topI, topT, topE}); // Logic replaced above
 
         // Calculate Cofactors
         // Initialise with defaults
@@ -93,7 +100,7 @@ namespace ClassProject {
 
     BDD_ID Manager::coFactorTrue(BDD_ID f, BDD_ID x) {
         // Return Constant if f == constant, topVar(f) > x condition makes sure we look only deeper and not above (no dependency)
-        if (isConstant(f)  || isConstant(x) || topVar(f) > x) {
+        if (isConstant(f) || isConstant(x) || topVar(f) > x) {
             return f;
         }
 
@@ -128,47 +135,38 @@ namespace ClassProject {
     }
 
     BDD_ID Manager::coFactorTrue(BDD_ID f) { return nodes[f].high; }
-    BDD_ID Manager::coFactorFalse(BDD_ID f){ return nodes[f].low; }
+    BDD_ID Manager::coFactorFalse(BDD_ID f) { return nodes[f].low; }
 
     BDD_ID Manager::and2(BDD_ID a, BDD_ID b) { return ite(a, b, FALSE_ID); }
-    BDD_ID Manager::or2(BDD_ID a, BDD_ID b)  { return ite(a, TRUE_ID, b); }
-    BDD_ID Manager::xor2(BDD_ID a, BDD_ID b) { return or2(and2(neg(a),b),and2(a,neg(b))); }
-    BDD_ID Manager::neg(BDD_ID a)            { return ite(a, FALSE_ID, TRUE_ID); }
-    BDD_ID Manager::nand2(BDD_ID a, BDD_ID b){ return neg(and2(a, b)); }
+    BDD_ID Manager::or2(BDD_ID a, BDD_ID b) { return ite(a, TRUE_ID, b); }
+    BDD_ID Manager::xor2(BDD_ID a, BDD_ID b) { return or2(and2(neg(a), b), and2(a, neg(b))); }
+    BDD_ID Manager::neg(BDD_ID a) { return ite(a, FALSE_ID, TRUE_ID); }
+    BDD_ID Manager::nand2(BDD_ID a, BDD_ID b) { return neg(and2(a, b)); }
     BDD_ID Manager::nor2(BDD_ID a, BDD_ID b) { return neg(or2(a, b)); }
-    BDD_ID Manager::xnor2(BDD_ID a, BDD_ID b){ return neg(xor2(a, b)); }
+    BDD_ID Manager::xnor2(BDD_ID a, BDD_ID b) { return neg(xor2(a, b)); }
 
     void Manager::findNodes(const BDD_ID &root, std::set<BDD_ID> &nodes_of_root) {
-
         // Check for UniqueIDs
-        if (nodes_of_root.find(root) != nodes_of_root.end()) return;
+        if (nodes_of_root.insert(root).second) { //.second is the 2nd output of .insert() which is bool (true=new, false=already exists)
 
-        // Set: nodes are sorted in the ascending order by default
-        nodes_of_root.insert(root);
+            if (isConstant(root)) {
+                return;
+            }
 
-        // Stops at the Terminal/Leaf nodes
-        if (isConstant(root)) {
-            return;
-        }
-
-        // Recursively check for reachable nodes by looking at successors
-       findNodes(nodes[root].high, nodes_of_root);
-       findNodes(nodes[root].low, nodes_of_root);
-
+            findNodes(nodes[root].high, nodes_of_root);
+            findNodes(nodes[root].low, nodes_of_root);
+        } // else return, implicitly
     }
 
     void Manager::findVars(const BDD_ID &root, std::set<BDD_ID> &vars_of_root) {
-
         // Finding all reachable nodes using findNodes
         std::set<BDD_ID> all_reachable_nodes;
         findNodes(root, all_reachable_nodes);
 
         // Extract the variables from those nodes
-        for (BDD_ID node_id : all_reachable_nodes) {
-
+        for (BDD_ID node_id: all_reachable_nodes) {
             // Excluding Terminal/Leaf nodes
             if (!isConstant(node_id)) {
-
                 BDD_ID var_id = topVar(node_id);
 
                 vars_of_root.insert(var_id);
@@ -177,10 +175,7 @@ namespace ClassProject {
     }
 
 
-
-
     void Manager::visualizeBDD(std::string filepath, BDD_ID &root) {
-
         std::ofstream outputFile(filepath);
         if (!outputFile.is_open()) {
             std::cerr << "Error: Unable to open file " << filepath << std::endl;
@@ -203,7 +198,6 @@ namespace ClassProject {
     }
 
     void Manager::visualizeNode(BDD_ID id, std::ostream &outputFile, std::set<BDD_ID> &visitedNodes) {
-
         //          First, we need to check whether the node is already visited; if not, do not process again
         if (visitedNodes.find(id) != visitedNodes.end()) {
             return;
@@ -237,4 +231,5 @@ namespace ClassProject {
         visualizeNode(node.high, outputFile, visitedNodes);
     }
 }
+
 #include "Manager.h"
