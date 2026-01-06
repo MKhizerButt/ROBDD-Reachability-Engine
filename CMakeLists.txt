@@ -44,6 +44,8 @@ link_directories(${CMAKE_SOURCE_DIR}/src/test/)
 include_directories(${CMAKE_SOURCE_DIR}/src/bench/)
 link_directories(${CMAKE_SOURCE_DIR}/src/bench/)
 
+
+
 include_directories(${CMAKE_SOURCE_DIR}/src/verify/)
 link_directories(${CMAKE_SOURCE_DIR}/src/verify/)
 
@@ -59,3 +61,17 @@ add_test(NAME VDSProject_Test COMMAND run_tests)
 
 add_executable(VDSProject src/main.cpp)
 target_link_libraries(VDSProject Manager)
+
+add_executable(benchmark_tool
+        src/bench/main_bench.cpp
+        src/bench/BenchParser.cpp
+        src/bench/CircuitToBDD.cpp
+        src/bench/BenchmarkLib.cpp
+
+        # Add any other .cpp files found in src/bench/ here,
+        # such as one containing userTime() and process_mem_usage()
+)
+target_link_libraries(benchmark_tool Manager)
+
+add_executable(verify_tool src/verify/main_verify.cpp)
+target_link_libraries(verify_tool Manager)
