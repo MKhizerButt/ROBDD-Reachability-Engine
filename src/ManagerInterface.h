@@ -9,7 +9,6 @@
 #include <set>
 
 namespace ClassProject {
-
     typedef size_t BDD_ID;
 
     class ManagerInterface {

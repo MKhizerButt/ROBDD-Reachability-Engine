@@ -20,16 +20,12 @@ namespace ClassProject {
     size_t Manager::uniqueTableSize() { return nodes.size(); }
 
     BDD_ID Manager::createVar(const std::string &label) {
-        // We iterate through every node currently in the manager.
-        for (const auto &node: nodes) {
-            if (node.label == label) {
-                // If we find a match in labels, the result will be the currently existing ID:
-                return node.id;
-            }
-        }
-        // Below happens whenever we didn't find a match in the currently existing nodes' labels.
         BDD_ID new_id = nodes.size();
         nodes.push_back({new_id, TRUE_ID, FALSE_ID, new_id, label});
+
+        // Look for the Key in this struct '{}', and store value = new_id using the keyHasher as defined in Manager.h
+        uniqueTable[{TRUE_ID, FALSE_ID, new_id}] = new_id;
+
         return new_id;
     }
 
@@ -46,6 +42,12 @@ namespace ClassProject {
         if (t == TRUE_ID && e == FALSE_ID) return i;
         if (t == e) return t;
 
+        // For Computed Table entry. (From Bryant's ite algo. Prevents recalculating when recursing)
+        ComputedKey key = {i, t, e};
+        if (computedTable.count(key)) {
+            return computedTable[key];
+        }
+
         // For Recursive Cases
         BDD_ID top = topVar(i);
 
@@ -53,49 +55,49 @@ namespace ClassProject {
             top = topVar(t);
         }
 
-        if (!isConstant(e)  && topVar(e) < top) {
+        if (!isConstant(e) && topVar(e) < top) {
             top = topVar(e);
         }
 
-        // BDD_ID topI = isConstant(i) ? 99 : topVar(i);
-        // BDD_ID topT = isConstant(t) ? 99 : topVar(t);
-        // BDD_ID topE = isConstant(e) ? 99 : topVar(e);
-
-        //BDD_ID top = std::min({topI, topT, topE}); // Logic replaced above
-
-        // Calculate Cofactors
-        // Initialise with defaults
-        BDD_ID i_high = i, i_low = i;
-        BDD_ID t_high = t, t_low = t;
-        BDD_ID e_high = e, e_low = e;
-
-        // Using the coFactorTrue
-        i_high = coFactorTrue(i, top);
-        t_high = coFactorTrue(t, top);
-        e_high = coFactorTrue(e, top);
-
-        i_low = coFactorFalse(i, top);
-        t_low = coFactorFalse(t, top);
-        e_low = coFactorFalse(e, top);
-
+        // Calculate Cofactors (Removed intermediate variables)
         // Recursion (highSuccessor & lowSuccessor)
-        BDD_ID r_high = ite(i_high, t_high, e_high);
-        BDD_ID r_low = ite(i_low, t_low, e_low);
+        BDD_ID r_high = ite(coFactorTrue(i, top), coFactorTrue(t, top), coFactorTrue(e, top));
+        BDD_ID r_low = ite(coFactorFalse(i, top), coFactorFalse(t, top), coFactorFalse(e, top));
 
         // Reduction
         if (r_high == r_low) return r_high;
 
-        // Check if this node already exists, eliminate isomorphic sub-graphs
-        for (size_t k = 0; k < nodes.size(); k++) {
-            if (nodes[k].high == r_high && nodes[k].low == r_low && nodes[k].topVar == top) {
-                return k;
-            }
+        // Create a new node
+        UniqueKey uniqueKey = {r_high, r_low, top};
+
+        // Check if it already exists
+        if (uniqueTable.count(uniqueKey)) {
+            BDD_ID R = uniqueTable[uniqueKey];
+
+            // New node not created, save working in the computedTable for use in future recursion
+            computedTable[key] = R;
+            return R;
         }
 
-        // Create new node if not found
+        // When id is new, pushback in nodes (storage), uniqueTable (Canonicity) and computedTable (for future use in recursions)
         BDD_ID new_id = nodes.size();
         nodes.push_back({new_id, r_high, r_low, top, ""});
+
+        uniqueTable[uniqueKey] = new_id;
+        computedTable[key] = new_id;
+
         return new_id;
+        // // Check if this node already exists, eliminate isomorphic sub-graphs
+        // for (size_t k = 0; k < nodes.size(); k++) {
+        //     if (nodes[k].high == r_high && nodes[k].low == r_low && nodes[k].topVar == top) {
+        //         return k;
+        //     }
+        // }
+        //
+        // // Create new node if not found
+        // BDD_ID new_id = nodes.size();
+        // nodes.push_back({new_id, r_high, r_low, top, ""});
+        // return new_id;
     }
 
     BDD_ID Manager::coFactorTrue(BDD_ID f, BDD_ID x) {
@@ -147,7 +149,8 @@ namespace ClassProject {
 
     void Manager::findNodes(const BDD_ID &root, std::set<BDD_ID> &nodes_of_root) {
         // Check for UniqueIDs
-        if (nodes_of_root.insert(root).second) { //.second is the 2nd output of .insert() which is bool (true=new, false=already exists)
+        if (nodes_of_root.insert(root).second) {
+            //.second is the 2nd output of .insert() which is bool (true=new, false=already exists)
 
             if (isConstant(root)) {
                 return;
@@ -231,5 +234,3 @@ namespace ClassProject {
         visualizeNode(node.high, outputFile, visitedNodes);
     }
 }
-
-#include "Manager.h"
