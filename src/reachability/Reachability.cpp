@@ -62,6 +62,13 @@ namespace ClassProject {
             throw std::runtime_error("Size mismatch");
         }
 
+        // Check for Unknown ID
+        for (BDD_ID tf: transitionFunctions) {
+            if (tf >= uniqueTableSize()) {
+                throw std::runtime_error("Unknown ID provided");
+            }
+        }
+
         transitionRelation = True();
         //  Performing Conjunction (AND) of XNORs; nxt state var should be same as output of current state
         for (BDD_ID i = 0; i < currentStateVars.size(); i++) {
@@ -71,6 +78,10 @@ namespace ClassProject {
     }
 
     int Reachability::stateDistance(const std::vector<bool> &stateVector) {
+        if (stateVector.size() != currentStateVars.size()) {
+            throw std::runtime_error("Size mismatch");
+        }
+
         BDD_ID target = True();
         for (size_t i = 0; i < currentStateVars.size(); i++) {
             if (stateVector[i]) {
