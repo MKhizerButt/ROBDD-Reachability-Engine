@@ -1,32 +1,0 @@
-[0KRunning with gitlab-runner 18.5.0 (bda84871)[0;m
-[0K  on VDSProject IjUM3UmA-, system ID: s_ed63bb9e5722[0;m
-section_start:1764246427:prepare_executor[0K[0K[36;1mPreparing the "docker" executor[0;m[0;m
-[0KUsing Docker executor with image gcc:12 ...[0;m
-[0KUsing effective pull policy of [always] for container gcc:12[0;m
-[0KPulling docker image gcc:12 ...[0;m
-[0KUsing docker image sha256:75d439866a6baa1292536147f2c01f33465ebe13a2f0038d0bc979abf4ff93e6 for gcc:12 with digest gcc@sha256:40f2fc7ef42f1a60ab215cb8ec7225992ae1c672a138ed5620e30f4796de5d29 ...[0;m
-section_end:1764246429:prepare_executor[0Ksection_start:1764246429:prepare_script[0K[0K[36;1mPreparing environment[0;m[0;m
-[0KUsing effective pull policy of [always] for container sha256:2e1e6e290005eeb08e87c3e49012887510cc8c0b6ae1ec222173f1982ded1371[0;m
-Running on runner-ijum3uma--project-79-concurrent-0 via chianti...
-section_end:1764246429:prepare_script[0Ksection_start:1764246429:get_sources[0K[0K[36;1mGetting source from Git repository[0;m[0;m
-[32;1mGitaly correlation ID: 01KB2MG52V1JWRM51R0B44Y0XZ[0;m
-[32;1mFetching changes with git depth set to 20...[0;m
-Initialized empty Git repository in /builds/extern/vdscp/vdscp2526/vdscp04/.git/
-[32;1mCreated fresh repository.[0;m
-[32;1mChecking out 4f5f9960 as detached HEAD (ref is Amir)...[0;m
-
-[32;1mSkipping Git submodules setup[0;m
-section_end:1764246430:get_sources[0Ksection_start:1764246430:step_script[0K[0K[36;1mExecuting "step_script" stage of the job script[0;m[0;m
-[0KUsing effective pull policy of [always] for container gcc:12[0;m
-[0KUsing docker image sha256:75d439866a6baa1292536147f2c01f33465ebe13a2f0038d0bc979abf4ff93e6 for gcc:12 with digest gcc@sha256:40f2fc7ef42f1a60ab215cb8ec7225992ae1c672a138ed5620e30f4796de5d29 ...[0;m
-[32;1m$ echo "Preparing build directory..."[0;m
-Preparing build directory...
-[32;1m$ mkdir build[0;m
-[32;1m$ cd build[0;m
-[32;1m$ echo "Running CMake to configure the project..."[0;m
-Running CMake to configure the project...
-[32;1m$ cmake ..[0;m
-/usr/bin/bash: line 169: cmake: command not found
-section_end:1764246430:step_script[0Ksection_start:1764246430:cleanup_file_variables[0K[0K[36;1mCleaning up project directory and file based variables[0;m[0;m
-section_end:1764246431:cleanup_file_variables[0K[31;1mERROR: Job failed: exit code 1
-[0;m
