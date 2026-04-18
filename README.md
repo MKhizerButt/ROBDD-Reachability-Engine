@@ -93,4 +93,4 @@ int main() {
 The project includes tools to benchmark runtime and memory usage (RSS/VM). The optimized package correctly processes complex circuits (like the c3540 benchmark) in highly constrained time and memory environments.
 
 # 👨‍💻 Author
-Khizer Butt 
+M Khizer Butt 
